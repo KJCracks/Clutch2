@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="CIDR_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$/../include/Cracker.h">
+      <sourceFolder url="file://$MODULE_DIR$/../include/Cracker.h" isTestSource="false" />
+    </content>
+    <content url="file://$MODULE_DIR$/../include/Packager.h">
+      <sourceFolder url="file://$MODULE_DIR$/../include/Packager.h" isTestSource="false" />
+    </content>
+    <content url="file://$MODULE_DIR$/../include/applist.h">
+      <sourceFolder url="file://$MODULE_DIR$/../include/applist.h" isTestSource="false" />
+    </content>
+    <content url="file://$MODULE_DIR$/../src/Cracker.mm">
+      <sourceFolder url="file://$MODULE_DIR$/../src/Cracker.mm" isTestSource="false" />
+    </content>
+    <content url="file://$MODULE_DIR$/../src/Packager.mm">
+      <sourceFolder url="file://$MODULE_DIR$/../src/Packager.mm" isTestSource="false" />
+    </content>
+    <content url="file://$MODULE_DIR$/../src/applist.mm">
+      <sourceFolder url="file://$MODULE_DIR$/../src/applist.mm" isTestSource="false" />
+    </content>
+    <content url="file://$MODULE_DIR$/../src/main.mm">
+      <sourceFolder url="file://$MODULE_DIR$/../src/main.mm" isTestSource="false" />
+    </content>
+    <content url="file://$MODULE_DIR$" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
+
