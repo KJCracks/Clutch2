@@ -92,6 +92,20 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
     return YES;
 }
 
+- (BOOL) crackApp {
+    
+    return true;
+}
+
+
+// analyse
+// loads the binary, prepare the headers, etc
+-(void) analyse {
+    char[4096]* buffer;
+    binary = fopen([_binaryLocation UTF8String], "r+");
+    
+}
+
 // createPartialCopy
 // copies only the files required for cracking an application to a staging area
 
@@ -208,6 +222,8 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
 */
     // Clean up
     [baselineuuid release];
+    
+    [self analyse];
 
     return YES;
 }
