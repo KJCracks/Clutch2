@@ -38,8 +38,8 @@
  */
 
 #define CLUTCH_TITLE "Clutch"
-#define CLUTCH_VERSION "v2.0.0"
-#define CLUTCH_RELEASE "ALPHA 1"
+#define CLUTCH_VERSION "v2.0"
+#define CLUTCH_RELEASE "ALPHA 2"
 
 /*
  * Prototypes
@@ -52,7 +52,8 @@ int cmd_help(void);
 int cmd_crack_all(void);
 int cmd_crack_updated(void);
 int cmd_flush_cache(void);
-int cmd_crack_exe(NSString *path);
+int cmd_crack_exe(const char *path);
+int cmd_list_applications(NSArray *list);
 
 /*
  * Commands
@@ -147,7 +148,8 @@ int iterate_crack(NSArray *apps, NSMutableArray *successes, NSMutableArray *fail
 int cmd_crack_all(void)
 {
     // Get list of all applications
-    NSArray *all_applications = get_application_list(FALSE, FALSE);
+    //NSArray *all_applications = get_application_list(FALSE, FALSE);
+    NSArray *all_applications = [[[applist alloc] init] listApplications];
     
     // Create list for failures and successes
     NSMutableArray *failures=[[NSMutableArray alloc] init];
@@ -168,7 +170,7 @@ int cmd_crack_all(void)
 int cmd_crack_updated(void)
 {
     // Get list of updated applications
-    NSArray *update_applications = get_application_list(FALSE, TRUE);
+    NSArray *update_applications;// = get_application_list(FALSE, TRUE);
     
     // Create list for failures and successes
     NSMutableArray *failures=[[NSMutableArray alloc] init];
@@ -236,6 +238,25 @@ int cmd_crack_exe(const char *path)
     return 0;
 }
 
+int cmd_list_applications(NSArray *list)
+{
+    NSEnumerator *e = [list objectEnumerator];
+    NSDictionary *application;
+    int index = 1;
+    
+    printf("\n");
+    
+    while (application = [e nextObject])
+    {
+        printf("%d) \033[1;3%dm%s\033[0m \n", index, 5 + ((index + 1) % 2), [application[@"ApplicationDisplayName"] UTF8String]);
+        index++;
+    }
+    
+    printf("\n");
+    
+    return 0;
+}
+
 /*
  * Main Function
  */
@@ -245,13 +266,45 @@ int main(int argc, const char *argv[])
     // Prepare command line options
     int ret=0;
     
+    printf("\n");
+    
+    // check that we are root
+    if (getuid() != 0)
+    {
+        printf("You need to be root to use Clutch.\n");
+        
+        return 1;
+    }
+    
+    // this line gives me
     NSArray *arguments = [[NSProcessInfo processInfo] arguments];
-    int idx,cnt=(int)[arguments count];
-    for(idx=0;idx<cnt;idx++)
+    
+    int cnt = (int)[arguments count];
+    
+    for(int idx = 0;idx < cnt; idx++)
     {
         // Process each command line option
-        
         NSString *arg = [arguments objectAtIndex:idx];
+        
+        if([arg isEqualToString:@"/usr/bin/Clutch"] && [arguments count] == 1)
+        {
+            // show help & list applications
+            cmd_help();
+            NSArray *apps = [[[applist alloc] init] listApplications];
+            
+            if (apps == nil)
+            {
+                printf("Error finding applications!\n");
+            } else if ([apps count] == 0)
+            {
+                printf("No encrypted applications found\n");
+            } else
+            {
+                cmd_list_applications(apps);
+            }
+            
+            break;
+        }
         
         if([arg isEqualToString:@"-a"])
         {
@@ -293,6 +346,7 @@ int main(int argc, const char *argv[])
             // Display help
             ret = cmd_help();
         }
+        //else if ([arg isEqualToString:@""])
         else
         {
             // Unknown command line option

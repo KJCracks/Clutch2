@@ -1,6 +1,7 @@
-#ifndef __INC_APPLIST_H
-#define __INC_APPLIST_H
+#import <Foundation/Foundation.h>
 
-NSArray *get_application_list(BOOL sort, BOOL updates);
+@interface applist : NSObject
 
-#endif
+- (NSArray *)listApplications;
+
+@end

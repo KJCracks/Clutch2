@@ -1,162 +1,130 @@
-/*
- * Applist.mm - get list of installed applications
- */
+//
+//  Cracker.m
+//  Clutch
+//
+//  Created by on 12/22/13.
+//
+//
 
-#import "Foundation/Foundation.h"
 #import "applist.h"
+#import "out.h"
 
-/*
- * Prototypes
- */
+@implementation applist
 
-NSArray * get_application_list(BOOL sort, BOOL updates);
-static NSComparisonResult alphabeticalSort(id one, id two, void *context);
-
-/*
- * Implementations
- */
-
-
-// get_application_list()
-// return list of installed applications on device
-
-NSArray * get_application_list(BOOL sort, BOOL updates)
+- (NSArray *)listApplications
 {
     // Prepare array to return application list
     NSMutableArray *returnArray = [[NSMutableArray alloc] init];
     
     // Get base path for installed applications
 	NSString *basePath = @"/var/mobile/Applications/";
-
+    
 	// Get list of all applictions from file manager
 	NSArray *apps = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:basePath error:NULL];
 	
 	if ([apps count] == 0) {
+        printf("No applications found\n");
 		return NULL;
 	}
 	
-    // See if application cache exists or not, if not, create it
-	NSMutableDictionary *cache = [NSMutableDictionary dictionaryWithContentsOfFile:@"/var/cache/clutch.plist"];
-	BOOL cflush = FALSE;
-	if ((cache == nil) || (![cache count]))
-    {
-		cache = [NSMutableDictionary dictionary];
-        
-        // Write the cache to disk at the end
-		cflush = TRUE;
-	}
-    
-    // Get list of cracked app versions
-    NSMutableDictionary *versions;
-	if (updates)
-    {
-        if (![[NSFileManager defaultManager] fileExistsAtPath:@"/etc/clutch_cracked.plist"]) {
-            versions = [[NSMutableDictionary alloc] init];
-        }
-        else {
-            versions = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/cache/clutch_cracked.plist"];
-        }
-    }
-
     // Iterate over all applications
-	NSEnumerator *e;
-	e = [apps objectEnumerator];
-    NSString *applicationDirectory;
-    while (applicationDirectory = [e nextObject])
+    for (NSString *value in apps)
     {
-		//if ([cache objectForKey:applicationDirectory] != nil) {
-        //[returnArray addObject:[cache objectForKey:applicationDirectory]];
-        //	} else {
+        NSString *applicationDirectory = [basePath stringByAppendingFormat:@"%@/", value];
+        NSArray *sandboxPath = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:applicationDirectory error:NULL];
         
-        // Build full path to application sandbox
-        NSArray *sandboxPath = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[basePath stringByAppendingFormat:@"%@/", applicationDirectory] error:NULL];
         
-        // Iterate over sandbox subdirectories
-        NSEnumerator *e2 = [sandboxPath objectEnumerator];
-        NSString *applicationSubdirectory;
-        while (applicationSubdirectory = [e2 nextObject])
+        for (NSString *directory in sandboxPath)
         {
-            // Find the '*.app' sandbox subdirectory
-            if ([applicationSubdirectory rangeOfString:@".app"].location == NSNotFound)
+            if ([directory rangeOfString:@".app"].location == NSNotFound) // if the directory doesn't contain ".app" iterate loop
             {
                 continue;
-            }
-            
-            // Parse the Info.plist for the bundle display name and bundle version
-            NSString * bundleDisplayName = [[NSDictionary dictionaryWithContentsOfFile:[basePath stringByAppendingFormat:@"%@/%@/Info.plist", applicationDirectory, applicationSubdirectory]] objectForKey:@"CFBundleDisplayName"];
-
-            NSString * bundleIdentifier = [[NSDictionary dictionaryWithContentsOfFile:[basePath stringByAppendingFormat:@"%@/%@/Info.plist", applicationDirectory, applicationSubdirectory]] objectForKey:@"CFBundleIdentifier"];
-
-            NSString * bundleVersionString = [[[NSDictionary dictionaryWithContentsOfFile:[basePath stringByAppendingFormat:@"%@/%@/Info.plist", applicationDirectory, applicationSubdirectory]] objectForKey:@"CFBundleVersion"] stringByReplacingOccurrencesOfString:@"." withString:@""];
-            
-            NSString *applicationRealname = [[NSDictionary dictionaryWithContentsOfFile:[basePath stringByAppendingFormat:@"%@/%@/Info.plist", applicationDirectory, applicationSubdirectory]] objectForKey:@"CFBundleExecutable"];
-            // [applicationSubdirectory stringByReplacingOccurrencesOfString:@".app" withString:@""];
-            
-            // Default bundle display name if it's not in the Info.plist
-            if (bundleDisplayName == nil) {
-                bundleDisplayName = applicationRealname;
-            }
-            
-            // Create dictionary of useful keys from Info.plist
-            // if and only if the SC_Info folder exists, which indicates
-            // if an application is encrypted or not.
-            NSDictionary *applicationDetailObject;
-            if ([[NSFileManager defaultManager] fileExistsAtPath:[basePath stringByAppendingFormat:@"%@/%@/SC_Info/", applicationDirectory, applicationSubdirectory]])
+            } else
             {
-                applicationDetailObject = [NSDictionary dictionaryWithObjectsAndKeys:
-                                           [basePath stringByAppendingFormat:@"%@/", applicationDirectory], @"ApplicationBaseDirectory",
-                                           [basePath stringByAppendingFormat:@"%@/%@/", applicationDirectory, applicationSubdirectory], @"ApplicationDirectory",
-                                           bundleDisplayName, @"ApplicationDisplayName",
-                                           applicationRealname, @"ApplicationName",
-                                           applicationSubdirectory, @"ApplicationBasename",
-                                           applicationDirectory, @"RealUniqueID",
-                                           bundleVersionString, @"ApplicationVersion",
-                                           bundleIdentifier, @"ApplicationIdentifier",
-                                           nil];
+                // We're in an application folder
                 
-                // If we are doing updates only, check to see if the versions cache is not the same as the
-                // bundle version.
-                if (!updates || [versions objectForKey:applicationRealname] != bundleVersionString)
-                {
-                    // Return this application
-                    [returnArray addObject:applicationDetailObject];
+                // Check if SC_Info exsists, these are only present on encrypted applications
+                // Apple stock applications don't seem to have them (when did they start appearing
+                // symlink'd to /mobile/Applications?
+                NSString *subdirectory = [applicationDirectory stringByAppendingString:directory];
+                
+                if ([[NSFileManager defaultManager] fileExistsAtPath:[subdirectory stringByAppendingString:@"/SC_Info/"]]) {
+                    NSDictionary *infoPlist = [[NSDictionary alloc] initWithContentsOfFile:[subdirectory stringByAppendingString:@"/Info.plist"]];
+                    
+                    NSString *bundleDisplayName = infoPlist[@"CFBundleDisplayName"];
+                    
+                    if (bundleDisplayName == nil)
+                    {
+                        NSLog(@"%@ CFBundleDisplayName not found", directory);
+                        
+                        // try CFBundleName
+                        bundleDisplayName = infoPlist[@"CFBundleName"];
+                    }
+                    
+                    // no aleternative for CFBundleIdentifier
+                    NSString *bundleIdentifier = infoPlist[@"CFBundleIdentifier"];
+                    
+                    NSString *bundleVersionString = infoPlist[@"CFBundleVersion"];
+                    
+                    if (bundleVersionString == nil)
+                    {
+                        NSLog(@"%@ CFBundleVersion not found", directory);
+                        
+                        // try CFBundleShortVersionString
+                        bundleVersionString = infoPlist[@"CFBundleShortVersionString"];
+                    }
+                    
+                    // this should always be in Info.plist
+                    NSString *applicationRealName = infoPlist[@"CFBundleExecutable"];
+                    
+                    // default to the executable name
+                    if (bundleDisplayName == nil)
+                    {
+                        bundleDisplayName = applicationRealName;
+                    }
+                    
+                    // Create dictionary of useful keys from Info.plis
+                    // if and only if the SC_Info folder exsists, which indicates
+                    // if an applicaiton is encrypted.
+                    NSDictionary *applicationDetailObject = @{@"ApplicationBaseDirectory": applicationDirectory,
+                                                              @"ApplicationDirectory": subdirectory,
+                                                              @"ApplicationDisplayName": bundleDisplayName,
+                                                              @"ApplicationName": applicationRealName,
+                                                              @"ApplicationBaseName": directory,
+                                                              @"UUID": applicationDirectory,
+                                                              @"ApplicationVersion": bundleVersionString,
+                                                              @"ApplicationIdentifer": bundleIdentifier
+                                                              };
+                    
+                    if (applicationDetailObject)
+                    {
+                        NSLog(@"Encrypted application found: %@", directory);
+                        [returnArray addObject:applicationDetailObject];
+                    }
+                        
+                    //[returnArray addObject:applicationDetailObject];
+                } else {
+                    //NSLog(@"Not an encrypted application: %@", directory);
                 }
-                
-                // Add to the cache
-                [cache setValue:bundleDisplayName forKey:applicationDirectory];
-                
-                // Write the cache to disk at the end
-                cflush = TRUE;
             }
         }
     }
     
-	// Write the cache to disk
-	if (cflush)
+    if ([returnArray count] == 0)
     {
-		[cache writeToFile:@"/var/cache/clutch.plist" atomically:TRUE];
-	}
-    
-    // If we have nothing to return, return NULL rather than an empty array
-	if ([returnArray count] == 0) {
         [returnArray release];
-		return NULL;
-    }
-	
-    // If we want sorting, do so with an alphabetical sort on the application name
-	if (sort)
-    {
-		return (NSArray *)[returnArray sortedArrayUsingFunction:alphabeticalSort context:NULL];
+        
+        return NULL;
     }
     
-    // Return the array
-	return (NSArray *) returnArray;
-}
+    // return the array
+    return (NSArray *)[returnArray sortedArrayUsingFunction:alphabeticalSort context:NULL];
 
-// alphabeticalSort()
-// Comparison function for use with sorting option
+}
 
 static NSComparisonResult alphabeticalSort(id one, id two, void *context)
 {
 	return [[(NSDictionary *)one objectForKey:@"ApplicationName"] localizedCaseInsensitiveCompare:[(NSDictionary *)two objectForKey:@"ApplicationName"]];
 }
+
+@end

@@ -26,6 +26,7 @@
 		43A8C3A31867988C004C3DBA /* Cracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Cracker.h; path = ../../include/Cracker.h; sourceTree = "<group>"; };
 		43A8C3A41867988C004C3DBA /* Packager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Packager.h; path = ../../include/Packager.h; sourceTree = "<group>"; };
 		43AD3B61186740BA00B3EF9B /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = main.mm; path = ../../src/main.mm; sourceTree = "<group>"; };
+		E9BCDBEF186DB4AB0000E38E /* out.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = out.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +59,7 @@
 		43A60AAD1867383D00F44BA4 /* Clutch */ = {
 			isa = PBXGroup;
 			children = (
+				E9BCDBEF186DB4AB0000E38E /* out.h */,
 				43A8C39B18676A5C004C3DBA /* include */,
 				43A8C39A18676A58004C3DBA /* src */,
 				43A60AAE1867383D00F44BA4 /* Package */,
