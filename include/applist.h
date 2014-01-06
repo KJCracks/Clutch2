@@ -2,6 +2,6 @@
 
 @interface applist : NSObject
 
-- (NSArray *)listApplications;
++ (NSArray *)listApplications;
 
 @end

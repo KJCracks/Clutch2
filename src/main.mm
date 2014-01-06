@@ -23,15 +23,17 @@
  * Includes
  */
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <mach/mach.h>
 
 #import "Foundation/Foundation.h"
-#import "applist.h"
 
+#import "applist.h"
 #import "Cracker.h"
 #import "Packager.h"
+#import "Application.h"
 
 /*
  * Configuration
@@ -46,14 +48,15 @@
  */
 
 void print_failures(NSArray *failures, NSArray *successes);
-int iterate_crack(NSArray *apps, NSArray *successes, NSArray *failures);
+int iterate_crack(NSArray *apps, NSMutableArray *successes, NSMutableArray *failures);
 int cmd_version(void);
 int cmd_help(void);
 int cmd_crack_all(void);
 int cmd_crack_updated(void);
 int cmd_flush_cache(void);
-int cmd_crack_exe(const char *path);
-int cmd_list_applications(NSArray *list);
+int cmd_crack_exe(NSString *path);
+int cmd_list_applications(void);
+int cmd_crack_application(Application *application);
 
 /*
  * Commands
@@ -63,6 +66,7 @@ int cmd_list_applications(NSArray *list);
 int cmd_version(void)
 {
     printf("%s %s (%s)\n",CLUTCH_TITLE, CLUTCH_VERSION,CLUTCH_RELEASE);
+    
     return 0;
 }
 
@@ -119,13 +123,13 @@ int iterate_crack(NSArray *apps, NSMutableArray *successes, NSMutableArray *fail
 {
     // Iterate over all applications
 	NSEnumerator *e = [apps objectEnumerator];
-    while(NSDictionary *appdict = [e nextObject])
+    while(Application *app = [e nextObject])
     {
         // Prepare this application from the installed app
         Cracker *cracker=[[Cracker alloc] init];
         
         NSMutableString *description=[[NSMutableString alloc] init];
-        [cracker prepareFromInstalledApp:appdict returnDescription:description];
+        [cracker prepareFromInstalledApp:app returnDescription:description];
         
            
         if([cracker execute])
@@ -139,7 +143,7 @@ int iterate_crack(NSArray *apps, NSMutableArray *successes, NSMutableArray *fail
         
         // Repackage IPA file
         Packager *packager=[[Packager alloc] init];
-        [packager pack_from_source:[appdict objectForKey:@"ApplicationBaseDirectory"]
+        [packager pack_from_source:app.baseDirectory
                   with_overlay:[cracker getOutputFolder]];
     }
     return 0;
@@ -149,14 +153,14 @@ int cmd_crack_all(void)
 {
     // Get list of all applications
     //NSArray *all_applications = get_application_list(FALSE, FALSE);
-    NSArray *all_applications = [[[applist alloc] init] listApplications];
+    NSArray *all_applications = [applist listApplications];
     
     // Create list for failures and successes
-    NSMutableArray *failures=[[NSMutableArray alloc] init];
-    NSMutableArray *successes=[[NSMutableArray alloc] init];
+    NSMutableArray *failures = [[NSMutableArray alloc] init];
+    NSMutableArray *successes = [[NSMutableArray alloc] init];
     
     // Iterate over all applications
-    int ret=iterate_crack(all_applications, successes, failures);
+    int ret = iterate_crack(all_applications, successes, failures);
 
     // Print failures and success status
     print_failures(successes,failures);
@@ -170,14 +174,14 @@ int cmd_crack_all(void)
 int cmd_crack_updated(void)
 {
     // Get list of updated applications
-    NSArray *update_applications;// = get_application_list(FALSE, TRUE);
+    NSArray *update_applications = [applist listApplications];
     
     // Create list for failures and successes
     NSMutableArray *failures=[[NSMutableArray alloc] init];
     NSMutableArray *successes=[[NSMutableArray alloc] init];
     
     // Iterate over all applications
-    int ret=iterate_crack(update_applications, successes, failures);
+    int ret = iterate_crack(update_applications, successes, failures);
     
     // Print failures and success status
     print_failures(successes,failures);
@@ -192,25 +196,27 @@ int cmd_crack_updated(void)
 int cmd_crack_exe(NSString *path)
 {
     // Create list for failures and successes
-    NSMutableArray *failures=[[NSMutableArray alloc] init];
-    NSMutableArray *successes=[[NSMutableArray alloc] init];
+    NSMutableArray *failures = [[NSMutableArray alloc] init];
+    NSMutableArray *successes = [[NSMutableArray alloc] init];
     
     // Prepare this application from the installed app
-    Cracker *cracker=[[Cracker alloc] init];
+    Cracker *cracker = [[Cracker alloc] init];
     
     NSMutableString *description=[[NSMutableString alloc] init];
     [cracker prepareFromSpecificExecutable:path returnDescription:description];
     
-    int ret=0;
+    int ret = 0;
     if([cracker execute])
     {
         [successes addObject:description];
-        ret=0;
+        [description release];
+        ret = 0;
     }
     else
     {
         [failures addObject:description];
-        ret=1;
+        [description release];
+        ret = 1;
     }
     
     // Repackage IPA file
@@ -221,8 +227,41 @@ int cmd_crack_exe(NSString *path)
     // Print failures and success status
     print_failures(successes,failures);
 
+    [cracker release];
+    [packager release];
     [failures release];
     [successes release];
+    
+    return ret;
+}
+
+int cmd_crack_application(Application *application)
+{
+    NSMutableArray *successes = [[NSMutableArray alloc] init];
+    NSMutableArray *failures = [[NSMutableArray alloc] init];
+    
+    Cracker *cracker = [[Cracker alloc] init];
+    
+    int ret = 0;
+    
+    if (![cracker crackApplication:application])
+    {
+        [failures addObject:application.displayName];
+        
+        ret = 1;
+    }
+    else
+    {
+        [successes addObject:application.displayName];
+        
+        ret = 0;
+    }
+    
+    print_failures(successes, failures);
+    
+    [cracker release];
+    [successes release];
+    [failures release];
     
     return ret;
 }
@@ -233,22 +272,18 @@ int cmd_flush_cache(void)
     return 0;
 }
 
-int cmd_crack_exe(const char *path)
+int cmd_list_applications(void)
 {
-    return 0;
-}
-
-int cmd_list_applications(NSArray *list)
-{
+    NSArray *list = [applist listApplications];
     NSEnumerator *e = [list objectEnumerator];
-    NSDictionary *application;
+    Application *application;
     int index = 1;
     
     printf("\n");
     
     while (application = [e nextObject])
     {
-        printf("%d) \033[1;3%dm%s\033[0m \n", index, 5 + ((index + 1) % 2), [application[@"ApplicationDisplayName"] UTF8String]);
+        printf("%d) \033[1;3%dm%s\033[0m \n", index, 5 + ((index + 1) % 2), [application.displayName UTF8String]);
         index++;
     }
     
@@ -281,7 +316,7 @@ int main(int argc, const char *argv[])
     
     int cnt = (int)[arguments count];
     
-    for(int idx = 0;idx < cnt; idx++)
+    for(int idx = 0; idx < cnt; idx++)
     {
         // Process each command line option
         NSString *arg = [arguments objectAtIndex:idx];
@@ -290,68 +325,60 @@ int main(int argc, const char *argv[])
         {
             // show help & list applications
             cmd_help();
-            NSArray *apps = [[[applist alloc] init] listApplications];
-            
-            if (apps == nil)
-            {
-                printf("Error finding applications!\n");
-            } else if ([apps count] == 0)
-            {
-                printf("No encrypted applications found\n");
-            } else
-            {
-                cmd_list_applications(apps);
-            }
-            
-            break;
+            cmd_list_applications();
         }
-        
-        if([arg isEqualToString:@"-a"])
+        else if ([arg isEqualToString:@"-a"] || [arg isEqualToString:@"-all"])
         {
             // Crack all applications
             ret = cmd_crack_all();
         }
-        else if([arg isEqualToString:@"-u"])
+        else if([arg isEqualToString:@"-u"] || [arg isEqualToString:@"-updates"])
         {
             // Crack updated applications
             ret = cmd_crack_updated();
         }
-        else if([arg isEqualToString:@"-f"])
+        else if([arg isEqualToString:@"-f"] || [arg isEqualToString:@"-flush"])
         {
             // Flush caches
             ret = cmd_flush_cache();
         }
-        else if([arg isEqualToString:@"-v"])
+        else if([arg isEqualToString:@"-v"] || [arg isEqualToString:@"-version"])
         {
             // Display version string
             ret = cmd_version();
         }
-        else if([arg isEqualToString:@"-x"])
+        else if([arg isEqualToString:@"-x"] || [arg isEqualToString:@"-executable"])
         {
             // Crack specific executable
             
             // Get path argument
-            idx++;
-            if(idx>=cnt)
+            NSString *path = [arguments objectAtIndex:idx + 1];
+            if(path == nil)
             {
                 printf("-x requires a 'path' argument");
                 return 1;
             }
-            NSString *path = [arguments objectAtIndex:idx];
             
             ret = cmd_crack_exe(path);
         }
-        else if([arg isEqualToString:@"-h"] || [arg isEqualToString:@"-?"])
+        else if([arg isEqualToString:@"-h"] || [arg isEqualToString:@"-?"] || [arg isEqualToString:@"-help"])
         {
             // Display help
             ret = cmd_help();
         }
-        //else if ([arg isEqualToString:@""])
         else
         {
-            // Unknown command line option
+            NSArray *list = [applist listApplications];
+            int index = [arg intValue];
+            
+            NSLog(@"index: %d", index);
+    
+            cmd_crack_application(list[index]);
+            
+            return 0;
+            /*// Unknown command line option
             printf ("unknown option '%s'\n", [arg UTF8String]);
-            return 1;
+            return 1;*/
         }
     }
     

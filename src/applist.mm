@@ -8,10 +8,11 @@
 
 #import "applist.h"
 #import "out.h"
+#import "Application.h"
 
 @implementation applist
 
-- (NSArray *)listApplications
++ (NSArray *)listApplications
 {
     // Prepare array to return application list
     NSMutableArray *returnArray = [[NSMutableArray alloc] init];
@@ -24,6 +25,8 @@
 	
 	if ([apps count] == 0) {
         printf("No applications found\n");
+        
+        [returnArray release];
 		return NULL;
 	}
 	
@@ -46,7 +49,7 @@
                 // Check if SC_Info exsists, these are only present on encrypted applications
                 // Apple stock applications don't seem to have them (when did they start appearing
                 // symlink'd to /mobile/Applications?
-                NSString *subdirectory = [applicationDirectory stringByAppendingString:directory];
+                NSString *subdirectory = [applicationDirectory stringByAppendingFormat:@"%@/", directory];
                 
                 if ([[NSFileManager defaultManager] fileExistsAtPath:[subdirectory stringByAppendingString:@"/SC_Info/"]]) {
                     NSDictionary *infoPlist = [[NSDictionary alloc] initWithContentsOfFile:[subdirectory stringByAppendingString:@"/Info.plist"]];
@@ -59,6 +62,7 @@
                         
                         // try CFBundleName
                         bundleDisplayName = infoPlist[@"CFBundleName"];
+                        NSLog(@"Using CFBundleName: %@", bundleDisplayName);
                     }
                     
                     // no aleternative for CFBundleIdentifier
@@ -75,36 +79,47 @@
                     }
                     
                     // this should always be in Info.plist
-                    NSString *applicationRealName = infoPlist[@"CFBundleExecutable"];
+                    NSString *binary = infoPlist[@"CFBundleExecutable"];
                     
                     // default to the executable name
                     if (bundleDisplayName == nil)
                     {
-                        bundleDisplayName = applicationRealName;
+                        bundleDisplayName = binary;
                     }
                     
                     // Create dictionary of useful keys from Info.plis
                     // if and only if the SC_Info folder exsists, which indicates
                     // if an applicaiton is encrypted.
-                    NSDictionary *applicationDetailObject = @{@"ApplicationBaseDirectory": applicationDirectory,
-                                                              @"ApplicationDirectory": subdirectory,
-                                                              @"ApplicationDisplayName": bundleDisplayName,
-                                                              @"ApplicationName": applicationRealName,
-                                                              @"ApplicationBaseName": directory,
-                                                              @"UUID": applicationDirectory,
-                                                              @"ApplicationVersion": bundleVersionString,
-                                                              @"ApplicationIdentifer": bundleIdentifier
-                                                              };
+                    Application *app = [[Application alloc] init];
+                    app.baseDirectory = applicationDirectory;
+                    app.directory = subdirectory;
+                    app.displayName = bundleDisplayName;
+                    app.binary = binary;
+                    app.baseName = directory;
+                    app.UUID = [[applicationDirectory lastPathComponent] stringByDeletingPathExtension];
+                    app.version = bundleVersionString;
+                    app.identifier = bundleIdentifier;
+                    app.infoPlist = infoPlist;
+                    app.binaryPath = [applicationDirectory stringByAppendingFormat:@"/%@/%@", directory, binary];
                     
-                    if (applicationDetailObject)
-                    {
-                        NSLog(@"Encrypted application found: %@", directory);
-                        [returnArray addObject:applicationDetailObject];
-                    }
-                        
-                    //[returnArray addObject:applicationDetailObject];
-                } else {
-                    //NSLog(@"Not an encrypted application: %@", directory);
+                    NSLog(@"REMOVE THIS binary path %@", app.binaryPath);
+                    
+                    
+                    /*printf("\n");
+                    NSLog(@"BaseDir %@", applicationDirectory);
+                    NSLog(@"Directory %@", subdirectory);
+                    NSLog(@"DispName: %@", bundleDisplayName);
+                    NSLog(@"Binary %@", binary);
+                    NSLog(@"BaseName %@", directory);
+                    NSLog(@"UUID %@", [[applicationDirectory lastPathComponent] stringByDeletingPathExtension]);
+                    NSLog(@"Version %@", bundleVersionString);
+                    NSLog(@"Ident %@", bundleIdentifier);*/
+                    
+                    NSLog(@"Encrypted application found: %@", directory);
+                    [returnArray addObject:app];
+                    
+                    [app release];
+                    [infoPlist release];
                 }
             }
         }
@@ -117,14 +132,17 @@
         return NULL;
     }
     
+    NSArray *sortedReturnArray = [returnArray sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+        NSString *first = [(Application*)obj1 displayName];
+        NSString *second = [(Application *)obj2 displayName];
+        
+        return [first compare:second];
+    }];
+    
     // return the array
-    return (NSArray *)[returnArray sortedArrayUsingFunction:alphabeticalSort context:NULL];
-
-}
-
-static NSComparisonResult alphabeticalSort(id one, id two, void *context)
-{
-	return [[(NSDictionary *)one objectForKey:@"ApplicationName"] localizedCaseInsensitiveCompare:[(NSDictionary *)two objectForKey:@"ApplicationName"]];
+    return sortedReturnArray;
+    
+    //return (NSArray *)[returnArray sortedArrayUsingFunction:alphabeticalSort context:NULL];
 }
 
 @end

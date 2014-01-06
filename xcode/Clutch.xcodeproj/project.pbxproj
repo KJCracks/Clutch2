@@ -11,6 +11,10 @@
 		43A8C39F186797A1004C3DBA /* Cracker.mm in Sources */ = {isa = PBXBuildFile; fileRef = 43A8C39E186797A1004C3DBA /* Cracker.mm */; };
 		43A8C3A21867980C004C3DBA /* Packager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 43A8C3A11867980C004C3DBA /* Packager.mm */; };
 		43AD3B62186740BA00B3EF9B /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 43AD3B61186740BA00B3EF9B /* main.mm */; };
+		E994B8A51876F957002732C4 /* Application.mm in Sources */ = {isa = PBXBuildFile; fileRef = E994B8A41876F957002732C4 /* Application.mm */; };
+		E994B8AC1878326D002732C4 /* dump.m in Sources */ = {isa = PBXBuildFile; fileRef = E994B8AB1878326D002732C4 /* dump.m */; };
+		E994B8B01878330C002732C4 /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = E994B8AE1878330C002732C4 /* sha1.c */; };
+		E994B8B418799366002732C4 /* out.mm in Sources */ = {isa = PBXBuildFile; fileRef = E994B8B3187839EB002732C4 /* out.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,7 +30,14 @@
 		43A8C3A31867988C004C3DBA /* Cracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Cracker.h; path = ../../include/Cracker.h; sourceTree = "<group>"; };
 		43A8C3A41867988C004C3DBA /* Packager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Packager.h; path = ../../include/Packager.h; sourceTree = "<group>"; };
 		43AD3B61186740BA00B3EF9B /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = main.mm; path = ../../src/main.mm; sourceTree = "<group>"; };
-		E9BCDBEF186DB4AB0000E38E /* out.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = out.h; sourceTree = "<group>"; };
+		E994B8A41876F957002732C4 /* Application.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Application.mm; path = ../../src/Application.mm; sourceTree = "<group>"; };
+		E994B8A718777B17002732C4 /* Application.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Application.h; path = ../../include/Application.h; sourceTree = "<group>"; };
+		E994B8AB1878326D002732C4 /* dump.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = dump.m; path = ../../src/dump.m; sourceTree = "<group>"; };
+		E994B8AD18783274002732C4 /* dump.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dump.h; path = ../../include/dump.h; sourceTree = "<group>"; };
+		E994B8AE1878330C002732C4 /* sha1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sha1.c; path = ../../external/sha1.c; sourceTree = "<group>"; };
+		E994B8AF1878330C002732C4 /* sha1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sha1.h; path = ../../external/sha1.h; sourceTree = "<group>"; };
+		E994B8B218783730002732C4 /* out.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = out.h; path = ../../include/out.h; sourceTree = "<group>"; };
+		E994B8B3187839EB002732C4 /* out.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = out.mm; path = ../../src/out.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,7 +70,7 @@
 		43A60AAD1867383D00F44BA4 /* Clutch */ = {
 			isa = PBXGroup;
 			children = (
-				E9BCDBEF186DB4AB0000E38E /* out.h */,
+				E994B8B118783310002732C4 /* external */,
 				43A8C39B18676A5C004C3DBA /* include */,
 				43A8C39A18676A58004C3DBA /* src */,
 				43A60AAE1867383D00F44BA4 /* Package */,
@@ -113,10 +124,13 @@
 		43A8C39A18676A58004C3DBA /* src */ = {
 			isa = PBXGroup;
 			children = (
-				43A8C398186769F6004C3DBA /* applist.mm */,
-				43AD3B61186740BA00B3EF9B /* main.mm */,
 				43A8C39E186797A1004C3DBA /* Cracker.mm */,
 				43A8C3A11867980C004C3DBA /* Packager.mm */,
+				43A8C398186769F6004C3DBA /* applist.mm */,
+				E994B8A41876F957002732C4 /* Application.mm */,
+				E994B8AB1878326D002732C4 /* dump.m */,
+				43AD3B61186740BA00B3EF9B /* main.mm */,
+				E994B8B3187839EB002732C4 /* out.mm */,
 			);
 			name = src;
 			sourceTree = "<group>";
@@ -127,8 +141,20 @@
 				43A8C3A31867988C004C3DBA /* Cracker.h */,
 				43A8C3A41867988C004C3DBA /* Packager.h */,
 				43A8C39C18676A80004C3DBA /* applist.h */,
+				E994B8A718777B17002732C4 /* Application.h */,
+				E994B8AD18783274002732C4 /* dump.h */,
+				E994B8B218783730002732C4 /* out.h */,
 			);
 			name = include;
+			sourceTree = "<group>";
+		};
+		E994B8B118783310002732C4 /* external */ = {
+			isa = PBXGroup;
+			children = (
+				E994B8AE1878330C002732C4 /* sha1.c */,
+				E994B8AF1878330C002732C4 /* sha1.h */,
+			);
+			name = external;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -197,9 +223,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E994B8B418799366002732C4 /* out.mm in Sources */,
 				43AD3B62186740BA00B3EF9B /* main.mm in Sources */,
+				E994B8AC1878326D002732C4 /* dump.m in Sources */,
 				43A8C39F186797A1004C3DBA /* Cracker.mm in Sources */,
 				43A8C399186769F6004C3DBA /* applist.mm in Sources */,
+				E994B8B01878330C002732C4 /* sha1.c in Sources */,
+				E994B8A51876F957002732C4 /* Application.mm in Sources */,
 				43A8C3A21867980C004C3DBA /* Packager.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -235,7 +265,7 @@
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LIBRARY_SEARCH_PATHS = "$(iOSOpenDevPath)/lib/**";
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = NO;
@@ -264,6 +294,7 @@
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LIBRARY_SEARCH_PATHS = "$(iOSOpenDevPath)/lib/**";
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
