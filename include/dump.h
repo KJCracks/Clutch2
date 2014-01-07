@@ -6,16 +6,17 @@
 
 #include <spawn.h>
 #include <mach-o/dyld.h>
+#include <mach-o/loader.h>
 
 #define OVERDRIVE_DYLIB_PATH "@executable_path/overdrive.dylib"
 #define OVERDRIVE_DYLIB_CURRENT_VER 0x20000
 #define OVERDRIVE_DYLIB_COMPATIBILITY_VERSION 0x20000
 
-#define LC_CODE_SIGNATURE  0x1d
+/*#define LC_CODE_SIGNATURE  0x1d
 #define LC_ENCRYPTION_INFO 0x21
 #define LC_SEGMENT 0x1
 
-#define MH_PIE 0x200000
+#define MH_PIE 0x200000*/
 
 #define CSSLOT_CODEDIRECTORY 0
 

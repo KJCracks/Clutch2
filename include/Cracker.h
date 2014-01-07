@@ -40,7 +40,6 @@
 - (BOOL)createCopyOfDirectory:(NSString *)applicationDirectory; // Create copy of all application files to /tmp/{UUID}
 - (BOOL)createCopyOfBinary:(NSString *)binaryPath; // Create copy of application binary to /tmp/{UUID}
 - (BOOL)removeTempFiles;
-- (NSDictionary *)analyseInfoPlistAtPath:(NSString *)infoPlistPath; // Builds a foundation data model of Info.plist
 
 // C method declarations
 void get_local_device_information();

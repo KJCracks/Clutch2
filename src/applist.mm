@@ -100,10 +100,8 @@
                     app.version = bundleVersionString;
                     app.identifier = bundleIdentifier;
                     app.infoPlist = infoPlist;
-                    app.binaryPath = [applicationDirectory stringByAppendingFormat:@"/%@/%@", directory, binary];
-                    
-                    NSLog(@"REMOVE THIS binary path %@", app.binaryPath);
-                    
+                    app.binaryPath = [applicationDirectory stringByAppendingFormat:@"%@/%@", directory, binary];
+                                        
                     
                     /*printf("\n");
                     NSLog(@"BaseDir %@", applicationDirectory);
@@ -115,7 +113,6 @@
                     NSLog(@"Version %@", bundleVersionString);
                     NSLog(@"Ident %@", bundleIdentifier);*/
                     
-                    NSLog(@"Encrypted application found: %@", directory);
                     [returnArray addObject:app];
                     
                     [app release];

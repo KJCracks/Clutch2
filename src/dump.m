@@ -65,8 +65,8 @@ BOOL dump_binary_32(FILE *origin, FILE *target, uint32_t top, NSString *originPa
 	BOOL foundCrypt = FALSE;
 	BOOL foundSignature = FALSE;
 	BOOL foundStartText = FALSE;
-	uint64_t __text_start = 0;
-	uint64_t __text_size = 0;
+	uint32_t __text_start = 0;
+	uint32_t __text_size = 0;
     
     NSLog(@"32bit dumping, offset %u", top);
     VERBOSE(@"dumping binary: analyzing load commands");
@@ -215,7 +215,7 @@ BOOL dump_binary_32(FILE *origin, FILE *target, uint32_t top, NSString *originPa
             // perform checks on vm regions
             memory_object_name_t object;
             vm_region_basic_info_data_t info;
-            mach_msg_type_number_t info_count = VM_REGION_BASIC_INFO_COUNT_64;
+            mach_msg_type_number_t info_count = VM_REGION_BASIC_INFO_COUNT;
             mach_vm_address_t region_start = 0;
             mach_vm_size_t region_size = 0;
             vm_region_flavor_t flavor = VM_REGION_BASIC_INFO;

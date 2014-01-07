@@ -371,14 +371,21 @@ int main(int argc, const char *argv[])
             NSArray *list = [applist listApplications];
             int index = [arg intValue];
             
-            NSLog(@"index: %d", index);
+            if (index == 0)
+            {
+                continue;
+            } else
+            {
+                NSLog(@"index: %d", index);
+                
+                cmd_crack_application(list[index - 1]);
+                
+                return 0;
+            }
     
-            cmd_crack_application(list[index]);
-            
-            return 0;
-            /*// Unknown command line option
+            // Unknown command line option
             printf ("unknown option '%s'\n", [arg UTF8String]);
-            return 1;*/
+            return 1;
         }
     }
     
